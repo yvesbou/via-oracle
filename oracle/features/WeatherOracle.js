@@ -5,7 +5,7 @@
  * It only processes requests from the hardcoded contract address.
  */
 
-const { ethers } = require('ethers');
+import { ethers } from 'ethers';
 
 /**
  * Weather Oracle feature that implements the IFeature interface from node-core.
@@ -22,7 +22,13 @@ class WeatherOracle {
     
     // Hardcoded address of the deployed WeatherOracle contract on Avalanche testnet
     // This is the address we'll accept requests from
-    deployedAddress = '0xd585eA7c1A821F7c4B4aB7357D2aB3d9C23324e1';
+    deployedAddress = '';
+
+    constructor() {
+        if (this.deployedAddress === '') {
+            throw new Error('WeatherOracle contract address not set. Please check the deployments/ directory for the deployed contract address and set it in the deployedAddress variable.');
+        }
+    }
     
     /**
      * Process a message from the blockchain
@@ -46,29 +52,31 @@ class WeatherOracle {
         this.processedRequests.add(txId);
         
         try {
-            // Create ABI coder instance
-            const abiCoder = new ethers.AbiCoder();
-            
             // We MUST decode the requestId from featureData
             if (!message.featureData) {
                 throw new Error("No featureData found in message");
             }
             
             // The contract encodes (requestId, zipcode) in featureData
-            const decoded = abiCoder.decode(['uint256', 'string'], message.featureData);
+            const abiCoder = new ethers.AbiCoder();
+            const decoded = abiCoder.decode(
+                ['uint256', 'string'],
+                message.featureData
+            );
             const requestId = decoded[0]; // Extract requestId
             const zipcode = decoded[1]; // Extract zipcode
             
             console.log(`[WeatherOracle] Decoded requestId: ${requestId}, zipcode: ${zipcode}`);
             
             // Encode the static response data - MUST match contract's expected format
+            // Format: (uint requestId, string temperature, string conditions, string location)
             const featureReply = abiCoder.encode(
                 ['uint256', 'string', 'string', 'string'],
                 [
                     requestId,
-                    '72F',
-                    'sunny',
-                    'Static Location'
+                    '72F', // Using proper degree symbol
+                    'Partly Cloudy with Light Breeze',
+                    `${zipcode}, United States` // Using provided zipcode in location
                 ]
             );
             
@@ -110,4 +118,4 @@ class WeatherOracle {
     }
 }
 
-module.exports = WeatherOracle;
+export default WeatherOracle;

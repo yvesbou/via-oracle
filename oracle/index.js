@@ -5,12 +5,12 @@
  * This implementation uses the node-core package directly and auto-loads features.
  */
 
-const dotenv = require('dotenv');
-const path = require('path');
-const fs = require('fs');
-const { Vladiator } = require('@vialabs-io/node-core/Vladiator');
-const { networks } = require('../network.config');
-const features = require('./features');
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { Vladiator } from '@vialabs-io/node-core';
+import { networks } from '../network.config.js';
+import features from './features/index.js';
 
 // Load environment variables
 dotenv.config();

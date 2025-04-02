@@ -4,11 +4,20 @@
  * Requests weather data from the WeatherOracle contract fully on-chain.
  */
 
-const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
-const { networks } = require('../network.config');
-require('dotenv').config();
+import { ethers } from 'ethers';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { networks } from '../network.config.js';
+import dotenv from 'dotenv';
+import { dirname } from 'path';
+
+// Configure dotenv
+dotenv.config();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Default network and polling settings
 const DEFAULT_NETWORK = 'avalanche-testnet';

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A lightweight ethers v6 example of a weather oracle using VIA's messaging protocol",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "compile": "solcjs --bin --abi --include-path node_modules/ --base-path . -o ./build contracts/WeatherOracle.sol",
     "deploy": "node scripts/deploy.js",

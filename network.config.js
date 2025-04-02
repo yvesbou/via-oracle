@@ -1,7 +1,8 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Network configurations - can be extended with more networks as needed
-const networks = {
+export const networks = {
   'avalanche-testnet': {
     name: 'avalanche-testnet',
     chainId: 43113,
@@ -64,8 +65,7 @@ function getAllNetworks() {
   return networks;
 }
 
-module.exports = {
-  networks,
+export {
   getNetworkConfig,
   getNetworkNames,
   getAllNetworks

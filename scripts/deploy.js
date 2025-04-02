@@ -4,13 +4,22 @@
  * Deploys the WeatherOracle contract and configures it to use the Private Oracle (feature ID 1).
  */
 
-const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
-const { getChainConfig } = require('@vialabs-io/npm-registry');
-const { execSync } = require('child_process');
-const { networks, getNetworkNames } = require('../network.config');
-require('dotenv').config();
+import { ethers } from 'ethers';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { getChainConfig } from '@vialabs-io/npm-registry';
+import { execSync } from 'child_process';
+import { networks, getNetworkNames } from '../network.config.js';
+import dotenv from 'dotenv';
+import { dirname } from 'path';
+
+// Configure dotenv
+dotenv.config();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Check if NODE_PRIVATE_KEY is set
 if (!process.env.NODE_PRIVATE_KEY) {
@@ -320,16 +329,13 @@ async function configureOracle(deployment) {
     const nodeAddress = nodeWallet.address;
     console.log(`Derived address from public key: ${nodeAddress}`);
     
-    // Use the correct ABI definition for setExsig
-    const messageContract = new ethers.Contract(
-      chainConfig.message,
-      [
-        'function setExsig(address _signer) external'
-      ],
-      deployment.contract.runner
-    );
+    // Set the external signature through our oracle contract
+    // We need to use the same wallet that deployed the contract (MESSAGE_OWNER)
+    console.log('Setting external signature through oracle contract...');
+    const deployerWallet = new ethers.Wallet(process.env.PRIVATE_KEY || '', deployment.contract.runner.provider);
+    const oracleWithDeployer = deployment.contract.connect(deployerWallet);
     
-    const setExsigTx = await messageContract.setExsig(nodeAddress);
+    const setExsigTx = await oracleWithDeployer.setExsig(nodeAddress);
     console.log(`SetExsig transaction hash: ${setExsigTx.hash}`);
     console.log('Waiting for confirmation...');
     
@@ -380,8 +386,51 @@ async function main() {
   // Configure the oracle
   await configureOracle(deployment);
   
+  // Get chain config for contract addresses
+  const finalChainConfig = getChainConfig(deployment.chainId);
+  
+  // Create contract instance with correct interface
+  const messageV3Contract = new ethers.Contract(
+    finalChainConfig.message,
+    [
+      'function exsig(address) external view returns (address)',
+      'function chainsig() external view returns (address)',
+      'function poslayer() external view returns (address)',
+      'function bridgeEnabled() external view returns (bool)'
+    ],
+    deployment.contract.runner
+  );
+
   console.log('\n=== Deployment and Configuration Completed Successfully! ===');
-  console.log(`\nWeatherOracle deployed to ${networks[networkName].name} at ${deployment.address}`);
+  console.log(`\nNetwork: ${networks[networkName].name}`);
+  console.log(`Chain ID: ${deployment.chainId}`);
+  
+  console.log('\nContract Addresses:');
+  console.log(`WeatherOracle: ${deployment.address}`);
+  console.log(`MessageV3: ${finalChainConfig.message}`);
+
+  try {
+    // Get contract state
+    const [chainSigAddress, posLayerAddress, isBridgeEnabled] = await Promise.all([
+      messageV3Contract.chainsig(),
+      messageV3Contract.poslayer(),
+      messageV3Contract.bridgeEnabled()
+    ]);
+
+    // Get external signature for our oracle contract
+    const oracleExSig = await messageV3Contract.exsig(deployment.address);
+    
+    console.log('\nMessageV3 Configuration:');
+    console.log(`Bridge Enabled: ${isBridgeEnabled}`);
+    console.log(`Chain Signature: ${chainSigAddress}`);
+    console.log(`POS Layer: ${posLayerAddress}`);
+    console.log('\nOracle Configuration:');
+    console.log(`External Signature: ${oracleExSig}`);
+
+  } catch (error) {
+    console.log('\nFailed to query some contract values:', error.message);
+  }
+  
   console.log('\nNext steps:');
   console.log('1. Set up the VIA Project Node with the WeatherFeature');
   console.log('2. Run the frontend to interact with the oracle');

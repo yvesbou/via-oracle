@@ -5,7 +5,7 @@
  * The Vladiator will automatically load these features during initialization.
  */
 
-const WeatherOracle = require('./WeatherOracle');
+import WeatherOracle from './WeatherOracle.js';
 
 // Create instances of all features
 const weatherOracle = new WeatherOracle();
@@ -16,6 +16,4 @@ const features = [
     weatherOracle
 ];
 
-// Export as default to match node-core's expected format
-module.exports = features;
-module.exports.default = features;
+export default features;

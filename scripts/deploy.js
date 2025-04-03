@@ -130,6 +130,17 @@ async function deployToNetwork(networkName) {
   const existingDeployment = await checkExistingDeployment(networkName);
   if (existingDeployment) {
     console.log(`Using existing deployment at ${existingDeployment.address}`);
+    
+    // Update the WeatherOracle.js feature file with the existing contract address
+    const featureFilePath = path.join(__dirname, '../oracle/features/WeatherOracle.js');
+    const featureContent = fs.readFileSync(featureFilePath, 'utf8');
+    const updatedContent = featureContent.replace(
+      /deployedAddress = ['"].*['"];/,
+      `deployedAddress = '${existingDeployment.address}';`
+    );
+    fs.writeFileSync(featureFilePath, updatedContent);
+    console.log(`Updated WeatherOracle feature with existing contract address: ${existingDeployment.address}`);
+    
     return existingDeployment;
   }
   
@@ -249,6 +260,16 @@ async function deployToNetwork(networkName) {
   
   console.log(`Deployment information saved to ${deploymentDir}/WeatherOracle.json`);
   console.log(`Frontend deployment config updated at ${frontendConfigPath}`);
+  
+  // Update the WeatherOracle.js feature file with the new contract address
+  const featureFilePath = path.join(__dirname, '../oracle/features/WeatherOracle.js');
+  const featureContent = fs.readFileSync(featureFilePath, 'utf8');
+  const updatedContent = featureContent.replace(
+    /deployedAddress = ['"].*['"];/,
+    `deployedAddress = '${contractAddress}';`
+  );
+  fs.writeFileSync(featureFilePath, updatedContent);
+  console.log(`Updated WeatherOracle feature with new contract address: ${contractAddress}`);
   
   return {
     address: contractAddress,
@@ -430,10 +451,6 @@ async function main() {
   } catch (error) {
     console.log('\nFailed to query some contract values:', error.message);
   }
-  
-  console.log('\nNext steps:');
-  console.log('1. Set up the VIA Project Node with the WeatherFeature');
-  console.log('2. Run the frontend to interact with the oracle');
 }
 
 main()

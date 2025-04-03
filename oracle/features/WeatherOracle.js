@@ -1,11 +1,12 @@
 /**
  * Ultra-Simplified Weather Private Oracle
  * 
- * This Private Oracle returns static weather data to the oracle contract.
+ * This Private Oracle fetches weather data from wttr.in API and returns it to the oracle contract.
  * It only processes requests from the hardcoded contract address.
  */
 
 import { ethers } from 'ethers';
+import axios from 'axios';
 
 /**
  * Weather Oracle feature that implements the IFeature interface from node-core.
@@ -68,15 +69,24 @@ class WeatherOracle {
             
             console.log(`[WeatherOracle] Decoded requestId: ${requestId}, zipcode: ${zipcode}`);
             
-            // Encode the static response data - MUST match contract's expected format
+            // Fetch real weather data from wttr.in
+            const response = await axios.get(`https://wttr.in/${zipcode}?format=j1`);
+            const weatherData = response.data;
+            
+            // Extract current temperature, conditions and location info
+            const currentTemp = weatherData.current_condition[0].temp_F;
+            const currentConditions = weatherData.current_condition[0].weatherDesc[0].value;
+            const location = `${weatherData.nearest_area[0].areaName[0].value}, ${weatherData.nearest_area[0].region[0].value}, ${weatherData.nearest_area[0].country[0].value}`;
+            
+            // Encode the real weather data - MUST match contract's expected format
             // Format: (uint requestId, string temperature, string conditions, string location)
             const featureReply = abiCoder.encode(
                 ['uint256', 'string', 'string', 'string'],
                 [
                     requestId,
-                    '72F', // Using proper degree symbol
-                    'Partly Cloudy with Light Breeze',
-                    `${zipcode}, United States` // Using provided zipcode in location
+                    `${currentTemp}F`,
+                    currentConditions,
+                    location
                 ]
             );
             

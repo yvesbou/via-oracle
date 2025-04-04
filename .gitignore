@@ -14,7 +14,6 @@ yarn.lock
 .env.production.local
 
 # Build artifacts
-build/
 dist/
 artifacts/
 cache/
@@ -22,9 +21,6 @@ coverage/
 typechain/
 typechain-types/
 
-# Deployment files
-deployments/
-frontend/src/config/deployments.json
 
 # IDE and editor files
 .idea/

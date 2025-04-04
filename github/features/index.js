@@ -5,7 +5,7 @@
  * The Vladiator will automatically load these features during initialization.
  */
 
-import GitHubOracle from "./GitHubOracle.js";
+import GitHubOracle from "./GithubOracle.js";
 
 // Create instances of all features
 const githubOracle = new GitHubOracle();

@@ -70,7 +70,7 @@ This script will:
 ## Step 3: Run the Oracle Node
 
 ```bash
-node github/index.js
+node github/index.js base-testnet
 ```
 
 ## Step 4: Request PR Data

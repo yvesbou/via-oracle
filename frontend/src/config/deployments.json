@@ -1,9 +1,9 @@
 {
   "84532": {
-    "address": "0x7087de333b9C72FD6938eECB2067a0A8666635e3",
+    "address": "0x756d6F248988002AcF4453E9FA733D238f3bdA49",
     "network": "base-testnet",
     "chainId": 84532,
-    "deployedAt": "2025-04-04T13:54:32.724Z",
+    "deployedAt": "2025-04-04T17:53:52.477Z",
     "abi": [
       {
         "inputs": [],

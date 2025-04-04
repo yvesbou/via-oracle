@@ -15,7 +15,7 @@ import axios from "axios";
 class GitHubOracle {
   // Feature identification properties required by IFeature
   featureId = 1; // ID 1 for Private Oracle
-  featureName = "GitHubPROracle";
+  featureName = "GitHubOracle";
   featureDescription = "Private Oracle that returns GitHub PR status data";
 
   // Track processed requests to avoid duplicates
@@ -23,7 +23,7 @@ class GitHubOracle {
 
   // Hardcoded address of the deployed GitHubPROracle contract
   // This is the address we'll accept requests from
-  deployedAddress = "0x7087de333b9C72FD6938eECB2067a0A8666635e3";
+  deployedAddress = '0x756d6F248988002AcF4453E9FA733D238f3bdA49';
 
   // GitHub API authentication token (optional but recommended to avoid rate limits)
   githubToken = "";
@@ -103,7 +103,7 @@ class GitHubOracle {
       // Format: (uint requestId, uint prId, uint8 statusCode, string title)
       const featureReply = abiCoder.encode(
         ["uint256", "uint256", "uint8", "string"],
-        [requestId, prId, statusCode, prData.title]
+        [requestId, prId, statusCode, ""]
       );
 
       // Set the feature reply on the message

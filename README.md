@@ -4,7 +4,7 @@ This project contains a Github PR oracle which allows contributors to redeem bou
 
 ## Reference
 
-This codebase is based and includes the quickstart oracle demo from VIALabs. [Do check it out](https://github.com/VIALabs-io/quickstart-oracle).
+This codebase is based on the quickstart oracle demo from VIALabs. [Do check it out](https://github.com/VIALabs-io/quickstart-oracle).
 
 ## Prerequisites
 
@@ -20,7 +20,6 @@ Before you begin, make sure you have:
 ```
 via-oracle/
 ├── contracts/
-│   └── WeatherOracle.sol    # The oracle contract with request/response functionality
 │   └── GithubOracle.sol     # The oracle contract with request/response functionality
 ├── github-script/
 │   ├── deploy.js            # Deploy script using ethers v6
@@ -30,7 +29,6 @@ via-oracle/
 │   └── features/
 │       ├── index.js         # Features registry
 │       └── GithubOracle.js  # Github oracle feature implementation
-├── frontend/                # React frontend for interacting with the oracle
 ├── network.config.js        # Network configuration
 ├── package.json             # Project dependencies
 ├── .env.example             # Example environment variables

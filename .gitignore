@@ -21,6 +21,11 @@ coverage/
 typechain/
 typechain-types/
 
+# Weather related
+contracts/WeatherOracle.sol
+scripts/
+oracle/
+
 
 # IDE and editor files
 .idea/

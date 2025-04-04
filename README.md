@@ -1,4 +1,4 @@
-# Weather Oracle Example
+# Github PR Oracle
 
 This project demonstrates how to create and deploy a weather oracle using VIA's messaging protocol. The oracle allows smart contracts to request weather data for a zipcode, which is fetched by an off-chain node and returned to the contract.
 
@@ -46,6 +46,7 @@ cp .env.example .env
 ```
 
 Edit the `.env` file and add:
+
 - Your private key for deploying contracts (PRIVATE_KEY)
 - Your node private key for running the oracle node (NODE_PRIVATE_KEY)
 - Optionally, your OpenWeatherMap API key (WEATHER_API_KEY)
@@ -57,6 +58,7 @@ node scripts/deploy.js
 ```
 
 This script will:
+
 1. Compile the WeatherOracle.sol contract
 2. Deploy the contract to Avalanche Testnet
 3. Configure the oracle for on-chain to off-chain communication
@@ -75,6 +77,7 @@ node scripts/request-weather.js 90210
 ```
 
 This command requests weather data for the zipcode 90210 (Beverly Hills). The script will:
+
 1. Send a transaction to the WeatherOracle contract
 2. Wait for the transaction to be confirmed
 3. Poll for the weather data to be received
@@ -94,6 +97,7 @@ npm run dev
 ### On-Chain Contract
 
 The `WeatherOracle` contract:
+
 - Allows users to request weather data for a zipcode
 - Generates a unique request ID for each request
 - Sends a message to the off-chain node
@@ -104,6 +108,7 @@ The `WeatherOracle` contract:
 ### Off-Chain Node
 
 The off-chain node:
+
 - Listens for weather data requests from the contract
 - Extracts the zipcode from the request
 - Fetches weather data from the OpenWeatherMap API (or uses static data)

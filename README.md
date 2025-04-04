@@ -73,7 +73,7 @@ This script will:
 node github/index.js
 ```
 
-## Step 4: Request Weather Data
+## Step 4: Request PR Data
 
 ```bash
 node github-script/request-pr.js

@@ -84,13 +84,20 @@ class GitHubOracle {
 
       // Determine PR status (1=OPEN, 2=MERGED, 3=CLOSED)
       let statusCode;
-      if (prData.merged) {
+      if (prData.merged === true) {
         statusCode = 2; // MERGED
       } else if (prData.state === "open") {
         statusCode = 1; // OPEN
+      } else if (prData.state === "closed" && !prData.merged) {
+        statusCode = 3; // CLOSED without being merged
       } else {
-        statusCode = 3; // CLOSED (not merged)
+        statusCode = 0; // UNKNOWN (shouldn't happen with GitHub API)
       }
+
+      const statusString = this.getStatusString(statusCode);
+      console.log(
+        `[GitHubPROracle] PR #${prId} status: ${statusString} (state=${prData.state}, merged=${prData.merged})`
+      );
 
       // Encode the PR data - MUST match contract's expected format
       // Format: (uint requestId, uint prId, uint8 statusCode, string title)
@@ -110,10 +117,14 @@ class GitHubOracle {
         `[GitHubPROracle] Response encoded and ready to send for requestId: ${requestId}`
       );
       console.log(
-        `[GitHubPROracle] Status: ${this.getStatusString(statusCode)}, Title: ${
-          prData.title
-        }`
+        `[GitHubPROracle] Status: ${statusString}, Title: ${prData.title}`
       );
+      if (prData.merged_at) {
+        console.log(`[GitHubPROracle] Merged at: ${prData.merged_at}`);
+      }
+      if (prData.closed_at && !prData.merged) {
+        console.log(`[GitHubPROracle] Closed at: ${prData.closed_at}`);
+      }
       console.log(
         `[GitHubPROracle] Message properties set: featureId=${
           message.featureId
@@ -129,27 +140,50 @@ class GitHubOracle {
   }
 
   /**
-   * Fetch PR data from GitHub API
+   * Fetch PR data from GitHub API using the "Get a pull request" endpoint
+   * https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request
    *
    * @param {string} repository - The repository name (e.g., 'deficollective/defiscan')
    * @param {number} prId - The PR ID
    * @returns {object} The PR data from GitHub API
    */
   async fetchPRData(repository, prId) {
-    const url = `https://api.github.com/repos/${repository}/pulls/${prId}`;
+    const [owner, repo] = repository.split("/");
+    if (!owner || !repo) {
+      throw new Error(
+        `Invalid repository format: ${repository}. Expected format: owner/repo`
+      );
+    }
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prId}`;
+    console.log(`[GitHubPROracle] Fetching PR data from: ${url}`);
 
     const headers = {
       Accept: "application/vnd.github.v3+json",
+      "X-GitHub-Api-Version": "2022-11-28",
     };
 
     // Add authentication if token is provided
     if (this.githubToken) {
-      headers["Authorization"] = `token ${this.githubToken}`;
+      headers["Authorization"] = `Bearer ${this.githubToken}`;
+      console.log(`[GitHubPROracle] Using GitHub token for authentication`);
+    } else {
+      console.log(
+        `[GitHubPROracle] No GitHub token provided, requests may be rate-limited`
+      );
     }
 
     try {
       const response = await axios.get(url, { headers });
-      return response.data;
+      console.log(`[GitHubPROracle] Successfully fetched PR data`);
+
+      // Log key PR details
+      const data = response.data;
+      console.log(`[GitHubPROracle] PR #${prId} Title: ${data.title}`);
+      console.log(`[GitHubPROracle] PR #${prId} State: ${data.state}`);
+      console.log(`[GitHubPROracle] PR #${prId} Merged: ${data.merged}`);
+
+      return data;
     } catch (error) {
       // If the PR doesn't exist or has been deleted
       if (error.response && error.response.status === 404) {
@@ -159,7 +193,32 @@ class GitHubOracle {
           title: `PR #${prId} not found`,
           state: "closed",
           merged: false,
+          merged_at: null,
+          closed_at: new Date().toISOString(),
         };
+      }
+
+      // Handle rate limiting
+      if (
+        error.response &&
+        error.response.status === 403 &&
+        error.response.headers["x-ratelimit-remaining"] === "0"
+      ) {
+        console.error(
+          `[GitHubPROracle] GitHub API rate limit exceeded. Consider adding a token.`
+        );
+        console.error(
+          `[GitHubPROracle] Rate limit resets at: ${new Date(
+            parseInt(error.response.headers["x-ratelimit-reset"]) * 1000
+          )}`
+        );
+      }
+
+      // Log other errors
+      console.error(`[GitHubPROracle] Error fetching PR data:`, error.message);
+      if (error.response) {
+        console.error(`[GitHubPROracle] Status: ${error.response.status}`);
+        console.error(`[GitHubPROracle] Response:`, error.response.data);
       }
 
       // Rethrow any other errors

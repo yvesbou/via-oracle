@@ -52,7 +52,7 @@ Edit the `.env` file and add:
 
 - Your private key for deploying contracts (PRIVATE_KEY)
 - Your node private key for running the oracle node (NODE_PRIVATE_KEY)
-- Optionally, your Github API key
+- Optionally, your Github API key (GITHUB_TOKEN)
 
 ## Step 2: Deploy Your Oracle Contract
 
